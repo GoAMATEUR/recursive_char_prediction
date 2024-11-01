@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from model.rnn import RNN
 from utils.dataset import CharDataset
+from utils.dataset import CharParser
 from utils.avgmeter import AverageMeter
 from torch.utils.data import DataLoader
 from torch.optim import Adam
@@ -15,16 +16,19 @@ device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.mp
 
 train_dir = "./data/train"
 test_dir = "./data/test"
+full_dir = "./data/full"
 batch_size = 256
 seq_length = 32
 hidden_size = 128
 temperature = 2.0
 log_interval = 5000
 
-dataset = CharDataset(train_dir, seq_length)
+embedding_config = CharParser(full_dir)
+
+dataset = CharDataset(train_dir, seq_length, embedding_config)
 dataloader = DataLoader(dataset, batch_size, shuffle=True)
-testset = CharDataset(test_dir, seq_length)
-testloader = DataLoader(testset, batch_size, shuffle=True)
+testset = CharDataset(test_dir, seq_length, embedding_config)
+testloader = DataLoader(testset, batch_size, shuffle=False)
 
 rnn = RNN(dataset.vocab_size, hidden_size, dataset.vocab_size).to(device)
 
