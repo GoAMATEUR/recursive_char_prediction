@@ -22,7 +22,7 @@ full_dir = "./data/full"
 batch_size = 64
 seq_length = 32
 hidden_size = 256
-dropout = 0.2
+dropout = 0
 temperature = 1.0
 log_interval = 1000
 
@@ -56,6 +56,8 @@ wandb.init(project="ESE5460_hw3_rnn",
 output_dir = "output/{}".format(current_run_name)
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
+
+best_loss = float("inf")
 
 total_loss = AverageMeter()
 for epoch in range(10):
@@ -92,5 +94,9 @@ for epoch in range(10):
                     loss = criteria(output, y.view(-1).long())
                     total_test_loss.update(loss.item())
                 wandb.log({"loss/test": total_test_loss.avg, "perplexity/test": np.exp(total_test_loss.avg)})
-            print("Test Loss: ", total_test_loss.avg)
+            
+            if total_test_loss.avg < best_loss:
+                best_loss = total_test_loss.avg
+                torch.save(rnn.state_dict(), os.path.join(output_dir, f"best_model.pth"))
+                print("New best test Loss: ", total_test_loss.avg)
 torch.save(rnn.state_dict(), os.path.join(output_dir, f"final_model.pth"))
