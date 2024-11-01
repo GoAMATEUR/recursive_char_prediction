@@ -44,12 +44,13 @@ class CharParser:
 
 class CharDataset(Dataset):
 
-    def __init__(self, data_path: str, seq_length: int, embedding_config: CharParser):
+    def __init__(self, data_path: str, seq_length: int, embedding_config: CharParser, use_embedding_layer: bool=False):
         self.data_path = data_path
         self.seq_length = seq_length
         self.embedding_config = embedding_config
         self.vocab_size = embedding_config.vocab_size
         self.data = self.read_data_recursive()
+        self.use_embedding_layer = use_embedding_layer
     
     def read_data_recursive(self) -> str:
         data = ""
@@ -64,13 +65,22 @@ class CharDataset(Dataset):
         return len(self.data) - self.seq_length - 1
 
     def __getitem__(self, idx):
-        x = torch.zeros(self.seq_length, self.vocab_size, dtype=torch.float32)
-        y = torch.zeros(self.seq_length, dtype=torch.long)
-        x_str = self.data[idx:idx+self.seq_length]
-        y_str = self.data[idx+1:idx+self.seq_length+1]
-        for i, (x_char, y_char) in enumerate(zip(x_str, y_str)):
-            x[i, self.embedding_config.vocab_to_id[x_char]] = 1.0
-            y[i] = self.embedding_config.vocab_to_id[y_char]
+        if not self.use_embedding_layer:
+            x = torch.zeros(self.seq_length, self.vocab_size, dtype=torch.float32)
+            y = torch.zeros(self.seq_length, dtype=torch.long)
+            x_str = self.data[idx:idx+self.seq_length]
+            y_str = self.data[idx+1:idx+self.seq_length+1]
+            for i, (x_char, y_char) in enumerate(zip(x_str, y_str)):
+                x[i, self.embedding_config.vocab_to_id[x_char]] = 1.0
+                y[i] = self.embedding_config.vocab_to_id[y_char]
+        else:
+            x = torch.zeros(self.seq_length, dtype=torch.long)
+            y = torch.zeros(self.seq_length, dtype=torch.long)
+            x_str = self.data[idx:idx+self.seq_length]
+            y_str = self.data[idx+1:idx+self.seq_length+1]
+            for i, (x_char, y_char) in enumerate(zip(x_str, y_str)):
+                x[i] = self.embedding_config.vocab_to_id[x_char]
+                y[i] = self.embedding_config.vocab_to_id[y_char]
         return x, y
 
     # def load_embedding(self, embedding_path: str):
