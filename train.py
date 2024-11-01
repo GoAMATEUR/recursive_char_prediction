@@ -22,8 +22,8 @@ full_dir = "./data/full"
 batch_size = 64
 seq_length = 32
 hidden_size = 256
-dropout = 0.2
-temperature = 1.0
+dropout = 0 # no dropout for 1-layer RNN
+temperature = 2.0
 log_interval = 1000
 
 embedding_config = CharParser(full_dir)
@@ -38,8 +38,8 @@ rnn = RNN(dataset.vocab_size, hidden_size, dataset.vocab_size, dropout).to(devic
 softmax_layer = nn.LogSoftmax(dim=-1)
 criteria = nn.NLLLoss()
 optimizer = Adam(rnn.parameters(), lr=0.001)
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1000, gamma=0.1)
-
+# scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1000, gamma=0.1)
+scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5, threshold=0.01, cooldown=2, min_lr=1e-6)
 
 current_run_name = time.strftime("%Y-%m-%d-%H-%M") 
 wandb.init(project="ESE5460_hw3_rnn", 
@@ -72,7 +72,7 @@ for epoch in range(10):
         total_loss.update(loss.item())
         torch.nn.utils.clip_grad_norm_(rnn.parameters(), 1.0)
         optimizer.step()
-        # scheduler.step()
+        scheduler.step()
         wandb.log({"loss/train": loss.item()})
         # wandb.log()
         if (i+1) % log_interval == 0:
