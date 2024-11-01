@@ -13,15 +13,18 @@ wandb.login()
 
 device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.mps.is_available() else "cpu")
 
-data_dir = "./data"
-batch_size = 128
+train_dir = "./data/train"
+test_dir = "./data/test"
+batch_size = 256
 seq_length = 32
 hidden_size = 128
 temperature = 2.0
-log_interval = 100
+log_interval = 5000
 
-dataset = CharDataset("data", seq_length)
+dataset = CharDataset(train_dir, seq_length)
 dataloader = DataLoader(dataset, batch_size, shuffle=True)
+testset = CharDataset(test_dir, seq_length)
+testloader = DataLoader(testset, batch_size, shuffle=True)
 
 rnn = RNN(dataset.vocab_size, hidden_size, dataset.vocab_size).to(device)
 
@@ -50,9 +53,20 @@ for epoch in range(1000):
         optimizer.step()
         # scheduler.step()
         wandb.log({"loss/train": loss.item()})
+        # wandb.log()
         if i % 1000 == 0:
             # print(f"Epoch: {epoch}, Loss: {loss.item()}")
-            wandb.log({"loss/train_avg": total_loss.avg})
+            wandb.log({"loss/train_avg": total_loss.avg, "perplexity/train": torch.exp(total_loss.avg)})
             torch.save(rnn.state_dict(), f"output/{epoch}_{i}_model.pth")
             total_loss.reset()
+            with torch.no_grad():
+                total_test_loss = AverageMeter()
+                for x, y in testloader:
+                    hidden = torch.zeros(1, batch_size, hidden_size).to(device)
+                    x, y = x.to(device), y.to(device)
+                    output, _ = rnn(x, hidden)
+                    output = softmax_layer(output.view(-1, dataset.vocab_size) / temperature)
+                    loss = criteria(output, y.view(-1).long())
+                    total_test_loss.update(loss.item())
+                wandb.log({"loss/test": total_test_loss.avg, "perplexity/test": torch.exp(total_test_loss.avg)})
 torch.save(rnn.state_dict(), f"output/final_model.pth")
