@@ -1,0 +1,37 @@
+{
+  "os": "macOS-15.2-arm64-arm-64bit",
+  "python": "3.12.4",
+  "startedAt": "2024-11-01T17:47:16.382874Z",
+  "program": "<python with no main file>",
+  "git": {
+    "remote": "git@github.com:GoAMATEUR/ESE5460-HW.git",
+    "commit": "d721e598c23ef70d4380a3421af6a651da055211"
+  },
+  "email": "goamateur@outlook.com",
+  "root": "/Users/hsy/Documents/Study/ESE5460/hw3",
+  "host": "ist-11085.apn.wlan.private.upenn.edu",
+  "username": "hsy",
+  "executable": "/Users/hsy/anaconda3/anaconda3/envs/torch/bin/python",
+  "cpu_count": 8,
+  "cpu_count_logical": 8,
+  "disk": {
+    "/": {
+      "total": "494384795648",
+      "used": "190590373888"
+    }
+  },
+  "memory": {
+    "total": "17179869184"
+  },
+  "cpu": {
+    "count": 8,
+    "countLogical": 8
+  },
+  "apple": {
+    "name": "Apple M3",
+    "ecpuCores": 4,
+    "pcpuCores": 4,
+    "gpuCores": 10,
+    "memoryGb": 16
+  }
+}

@@ -1,0 +1,16 @@
+{"time":"2024-11-01T13:47:14.230252-04:00","level":"INFO","msg":"using version","core version":"0.18.5"}
+{"time":"2024-11-01T13:47:14.23027-04:00","level":"INFO","msg":"created symlink","path":"/Users/hsy/Documents/Study/ESE5460/hw3/wandb/run-20241101_134714-hy7ftsrv/logs/debug-core.log"}
+{"time":"2024-11-01T13:47:14.544754-04:00","level":"INFO","msg":"created new stream","id":"hy7ftsrv"}
+{"time":"2024-11-01T13:47:14.544798-04:00","level":"INFO","msg":"stream: started","id":"hy7ftsrv"}
+{"time":"2024-11-01T13:47:14.544889-04:00","level":"INFO","msg":"sender: started","stream_id":"hy7ftsrv"}
+{"time":"2024-11-01T13:47:14.544827-04:00","level":"INFO","msg":"handler: started","stream_id":{"value":"hy7ftsrv"}}
+{"time":"2024-11-01T13:47:14.544927-04:00","level":"INFO","msg":"writer: Do: started","stream_id":{"value":"hy7ftsrv"}}
+{"time":"2024-11-01T13:47:14.709294-04:00","level":"INFO","msg":"Starting system monitor"}
+{"time":"2024-11-01T13:47:22.655474-04:00","level":"INFO","msg":"stream: closing","id":"hy7ftsrv"}
+{"time":"2024-11-01T13:47:22.655631-04:00","level":"INFO","msg":"Stopping system monitor"}
+{"time":"2024-11-01T13:47:22.656342-04:00","level":"INFO","msg":"Stopped system monitor"}
+{"time":"2024-11-01T13:47:23.744485-04:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2024-11-01T13:47:24.921028-04:00","level":"INFO","msg":"handler: closed","stream_id":{"value":"hy7ftsrv"}}
+{"time":"2024-11-01T13:47:24.921041-04:00","level":"INFO","msg":"sender: closed","stream_id":"hy7ftsrv"}
+{"time":"2024-11-01T13:47:24.921037-04:00","level":"INFO","msg":"writer: Close: closed","stream_id":{"value":"hy7ftsrv"}}
+{"time":"2024-11-01T13:47:24.921228-04:00","level":"INFO","msg":"stream: closed","id":"hy7ftsrv"}
