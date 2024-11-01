@@ -19,11 +19,11 @@ device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.mp
 train_dir = "./data/train"
 test_dir = "./data/val"
 full_dir = "./data/full"
-batch_size = 128
+batch_size = 64
 seq_length = 32
 hidden_size = 256
 dropout = 0.2
-temperature = 2.0
+temperature = 1.0
 log_interval = 1000
 
 embedding_config = CharParser(full_dir)
@@ -37,7 +37,7 @@ rnn = RNN(dataset.vocab_size, hidden_size, dataset.vocab_size, dropout).to(devic
 
 softmax_layer = nn.LogSoftmax(dim=-1)
 criteria = nn.NLLLoss()
-optimizer = Adam(rnn.parameters(), lr=0.01)
+optimizer = Adam(rnn.parameters(), lr=0.001)
 scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1000, gamma=0.1)
 
 
@@ -72,7 +72,7 @@ for epoch in range(10):
         total_loss.update(loss.item())
         torch.nn.utils.clip_grad_norm_(rnn.parameters(), 1.0)
         optimizer.step()
-        scheduler.step()
+        # scheduler.step()
         wandb.log({"loss/train": loss.item()})
         # wandb.log()
         if (i+1) % log_interval == 0:

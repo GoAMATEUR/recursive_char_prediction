@@ -7,8 +7,14 @@ class RNN(nn.Module):
         super(RNN, self).__init__()
         self.hidden_size = hidden_size
         self.rnn_block = nn.RNN(input_size, hidden_size, batch_first=True, dropout=dropout)
-        self.h2o = nn.Linear(hidden_size, output_size)
+        self.decoder = nn.Linear(hidden_size, output_size)
         # self.softmax = nn.LogSoftmax(dim=-1)
+        self.init_weights()
+
+    def init_weights(self):
+        initrange = 0.1
+        nn.init.zeros_(self.decoder.bias)
+        nn.init.uniform_(self.decoder.weight, -initrange, initrange)
 
     def forward(self, input, hidden):
         """
@@ -16,7 +22,7 @@ class RNN(nn.Module):
         """
          # (a hidden layer, batch_size, hidden_size)
         output, hidden = self.rnn_block(input, hidden)
-        output = self.h2o(output)
+        output = self.decoder(output)
         return output, hidden
 
 
