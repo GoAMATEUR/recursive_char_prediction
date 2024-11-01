@@ -1,0 +1,37 @@
+2024-11-02 02:11:39,235 INFO    MainThread:446375 [wandb_setup.py:_flush():76] Current SDK version is 0.15.3
+2024-11-02 02:11:39,235 INFO    MainThread:446375 [wandb_setup.py:_flush():76] Configure stats pid to 446375
+2024-11-02 02:11:39,235 INFO    MainThread:446375 [wandb_setup.py:_flush():76] Loading settings from /home/ubuntu/.config/wandb/settings
+2024-11-02 02:11:39,235 INFO    MainThread:446375 [wandb_setup.py:_flush():76] Loading settings from /home/ubuntu/research/recursive_char_prediction/wandb/settings
+2024-11-02 02:11:39,235 INFO    MainThread:446375 [wandb_setup.py:_flush():76] Loading settings from environment variables: {}
+2024-11-02 02:11:39,235 INFO    MainThread:446375 [wandb_setup.py:_flush():76] Inferring run settings from compute environment: {'program_relpath': 'train.py', 'program': '/home/ubuntu/research/recursive_char_prediction/train.py'}
+2024-11-02 02:11:39,235 INFO    MainThread:446375 [wandb_init.py:_log_setup():507] Logging user logs to /home/ubuntu/research/recursive_char_prediction/wandb/run-20241102_021139-rkqq2f1v/logs/debug.log
+2024-11-02 02:11:39,235 INFO    MainThread:446375 [wandb_init.py:_log_setup():508] Logging internal logs to /home/ubuntu/research/recursive_char_prediction/wandb/run-20241102_021139-rkqq2f1v/logs/debug-internal.log
+2024-11-02 02:11:39,235 INFO    MainThread:446375 [wandb_init.py:init():547] calling init triggers
+2024-11-02 02:11:39,235 INFO    MainThread:446375 [wandb_init.py:init():554] wandb.init called with sweep_config: {}
+config: {'batch_size': 64, 'seq_length': 32, 'hidden_size': 128, 'temperature': 2.0}
+2024-11-02 02:11:39,235 INFO    MainThread:446375 [wandb_init.py:init():596] starting backend
+2024-11-02 02:11:39,235 INFO    MainThread:446375 [wandb_init.py:init():600] setting up manager
+2024-11-02 02:11:39,236 INFO    MainThread:446375 [backend.py:_multiprocessing_setup():106] multiprocessing start_methods=fork,spawn,forkserver, using: spawn
+2024-11-02 02:11:39,236 INFO    MainThread:446375 [wandb_init.py:init():606] backend started and connected
+2024-11-02 02:11:39,237 INFO    MainThread:446375 [wandb_init.py:init():700] updated telemetry
+2024-11-02 02:11:39,239 INFO    MainThread:446375 [wandb_init.py:init():737] communicating run to backend with 60.0 second timeout
+2024-11-02 02:11:40,051 INFO    MainThread:446375 [wandb_run.py:_on_init():2177] communicating current version
+2024-11-02 02:11:40,274 WARNING MainThread:446375 [wandb_init.py:init():1172] interrupted
+Traceback (most recent call last):
+  File "/home/ubuntu/anaconda3/envs/cvpr/lib/python3.10/site-packages/wandb/sdk/wandb_init.py", line 1150, in init
+    run = wi.init()
+  File "/home/ubuntu/anaconda3/envs/cvpr/lib/python3.10/site-packages/wandb/sdk/wandb_init.py", line 785, in init
+    run._on_init()
+  File "/home/ubuntu/anaconda3/envs/cvpr/lib/python3.10/site-packages/wandb/sdk/wandb_run.py", line 2181, in _on_init
+    version_result = version_handle.wait(timeout=30)
+  File "/home/ubuntu/anaconda3/envs/cvpr/lib/python3.10/site-packages/wandb/sdk/lib/mailbox.py", line 283, in wait
+    found, abandoned = self._slot._get_and_clear(timeout=wait_timeout)
+  File "/home/ubuntu/anaconda3/envs/cvpr/lib/python3.10/site-packages/wandb/sdk/lib/mailbox.py", line 130, in _get_and_clear
+    if self._wait(timeout=timeout):
+  File "/home/ubuntu/anaconda3/envs/cvpr/lib/python3.10/site-packages/wandb/sdk/lib/mailbox.py", line 126, in _wait
+    return self._event.wait(timeout=timeout)
+  File "/home/ubuntu/anaconda3/envs/cvpr/lib/python3.10/threading.py", line 607, in wait
+    signaled = self._cond.wait(timeout)
+  File "/home/ubuntu/anaconda3/envs/cvpr/lib/python3.10/threading.py", line 324, in wait
+    gotit = waiter.acquire(True, timeout)
+KeyboardInterrupt

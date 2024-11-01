@@ -14,7 +14,7 @@ wandb.login()
 device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.mps.is_available() else "cpu")
 
 data_dir = "./data"
-batch_size = 8
+batch_size = 128
 seq_length = 32
 hidden_size = 128
 temperature = 2.0
@@ -28,11 +28,11 @@ rnn = RNN(dataset.vocab_size, hidden_size, dataset.vocab_size).to(device)
 softmax_layer = nn.LogSoftmax(dim=-1)
 criteria = nn.NLLLoss()
 optimizer = Adam(rnn.parameters(), lr=0.001)
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1000, gamma=0.1)
+# scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1000, gamma=0.1)
 
 
 current_run_name = time.strftime("%Y-%m-%d-%H-%M") 
-wandb.init(project="ESE5460_hw3_1", name="test", config={"batch_size": batch_size, "seq_length": seq_length, "hidden_size": hidden_size, "temperature": temperature})
+wandb.init(project="ESE5460_hw3_1", name=current_run_name, config={"batch_size": batch_size, "seq_length": seq_length, "hidden_size": hidden_size, "temperature": temperature})
 
 total_loss = AverageMeter()
 for epoch in range(1000):
@@ -46,12 +46,12 @@ for epoch in range(1000):
         # clip gradient
         loss.backward()
         total_loss.update(loss.item())
-        torch.nn.utils.clip_grad_norm_(rnn.parameters(), 5.0)
+        torch.nn.utils.clip_grad_norm_(rnn.parameters(), 1.0)
         optimizer.step()
-        scheduler.step()
+        # scheduler.step()
         wandb.log({"loss/train": loss.item()})
-        if i % 100 == 0:
-            print(f"Epoch: {epoch}, Loss: {loss.item()}")
+        if i % 1000 == 0:
+            # print(f"Epoch: {epoch}, Loss: {loss.item()}")
             wandb.log({"loss/train_avg": total_loss.avg})
             torch.save(rnn.state_dict(), f"output/{epoch}_{i}_model.pth")
             total_loss.reset()
