@@ -1,6 +1,0 @@
-  0%|                                                                                                                                                                                                                                                         | 0/1075776 [00:00<?, ?it/s]
-Traceback (most recent call last):
-  File "/Users/hsy/Documents/Study/ESE5460/hw3/train.py", line 40, in <module>
-    hidden = torch.zeros(1, input.size(0), hidden_size).to(device)
-                            ^^^^^^^^^^
-AttributeError: 'builtin_function_or_method' object has no attribute 'size'
