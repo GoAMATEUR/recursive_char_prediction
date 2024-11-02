@@ -13,7 +13,7 @@ import numpy as np
 import os
 import json
 
-wandb_log = False
+wandb_log = True
 eval_loss = True
 eval_generation = True
 
@@ -22,7 +22,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.mp
 train_dir = "./data/train"
 test_dir = "./data/val"
 full_dir = "./data/full"
-batch_size = 1
+batch_size = 32
 # seq_length = 128
 d_model = 200
 hidden_size = 256
@@ -32,6 +32,7 @@ n_layers = 3
 n_head = 4
 # temperature = 1.0
 log_interval = 1000
+lr = 0.01
 
 embedding_config = CharParser(full_dir)
 
@@ -53,8 +54,8 @@ model = CharTransformer(embedding_config.vocab_size, embedding_config.vocab_size
 softmax_layer = nn.LogSoftmax(dim=-1)
 criteria = nn.NLLLoss()
 optimizer = Adam(model.parameters(), lr=0.001)
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1000, gamma=0.1)
-# scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5, threshold=0.01, cooldown=2, min_lr=1e-6)
+# scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1000, gamma=0.1)
+scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=5, threshold=0.01, cooldown=2, min_lr=1e-6)
 
 
 current_run_name = time.strftime("%Y-%m-%d-%H-%M") 
@@ -100,7 +101,7 @@ for epoch in range(2):
         total_loss.update(loss.item())
         optimizer.step()
         step_counter += 1
-        # scheduler.step()
+        scheduler.step(loss.item())
         if wandb_log:
             wandb.log({"loss/train": loss.item()})
         # wandb.log()

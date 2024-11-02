@@ -77,6 +77,7 @@ class CharDataset(Dataset):
         self.embedding_config = embedding_config
         self.vocab_size = embedding_config.vocab_size
         self.data = self.read_data_recursive()
+        print("Data length: ", len(self.data))
         self.use_embedding_layer = use_embedding_layer
         self.offset_range = len(self.data) % self.seq_length - 1
         self.index_offset = 0
