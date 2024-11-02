@@ -13,7 +13,7 @@ import numpy as np
 import os
 import json
 
-wandb_log = True
+wandb_log = False
 eval_loss = True
 eval_generation = True
 
@@ -84,7 +84,7 @@ best_loss = float("inf")
 total_loss = AverageMeter()
 model.train()
 step_counter = 0
-for epoch in range(2):
+for epoch in range(50):
     for i, (x, y) in enumerate(tqdm(dataloader)):
         
         x, y = x.to(device), y.to(device) # (batch_size, seq_length), (batch_size, seq_length)
@@ -142,8 +142,10 @@ for epoch in range(2):
                     for i in range(seq_length - len(generated_text)):
                         input = embedding_config.chars_to_ids(generated_text).to(device) # (1, seq_len)
                         output= model(input) # (1, seq_len, vocab_size)
+                        output = softmax_layer(output[:, -1, :])
                         # print("Output shape: ", output.shape) 
-                        max_index = torch.argmax(output[0, -1, :], dim=-1) 
+                        # print("Output: ", output)
+                        max_index = torch.argmax(output[0, :], dim=-1) 
                         next_char = embedding_config.id_to_char(max_index.item())
                         # print("Next char: ", next_char) 
                         generated_text += next_char
