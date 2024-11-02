@@ -57,7 +57,7 @@ class CharParser:
         
         def char_to_embedding(self, char: str) -> int:
             # single char to embedding
-            embedding = torch.zeros(self.vocab_size, dtype=torch.float32)
+            embedding = torch.zeros(self.vocab_size, dtype=torch.long)
             embedding[self.vocab_to_id[char]] = 1.0
             return embedding
 

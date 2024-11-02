@@ -55,7 +55,7 @@ class CharTransformer(nn.Module):
         embedded_input = self.input_emb(input)
         embedded_input = self.pos_encoder(embedded_input) # (batch, seq_len, d_model)
         
-        causal_mask = torch.tril(torch.ones(embedded_input.size(1), embedded_input.size(1))).to(input.device)
+        causal_mask = torch.tril(torch.ones(embedded_input.size(1), embedded_input.size(1), dtype=torch.bool)).bool().to(input.device)
         output = self.transformer_docoder(embedded_input, embedded_input, causal_mask)
         output = self.decoder(output)
         return output

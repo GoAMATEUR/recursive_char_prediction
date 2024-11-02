@@ -13,23 +13,23 @@ import numpy as np
 import os
 import json
 
-wandb_log = False
-eval_loss = False
-eval_generation = False
+wandb_log = True
+eval_loss = True
+eval_generation = True
 
-device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.mps.is_available() else "cpu")
+device = torch.device("cuda")
 
 train_dir = "./data/train"
 test_dir = "./data/val"
 full_dir = "./data/full"
-batch_size = 64
-seq_length = 32
-d_model = 128
-hidden_size = 512
+batch_size = 128
+# seq_length = 128
+d_model = 200
+hidden_size = 256
 dropout = 0.1
 seq_length = 128
 n_layers = 3
-n_head = 8
+n_head = 4
 # temperature = 1.0
 log_interval = 1000
 
@@ -72,7 +72,7 @@ if wandb_log:
                     "char_to_idx": embedding_config.vocab_to_id,
             })
 
-output_dir = "output/{}".format(current_run_name)
+output_dir = "output/transformer/{}".format(current_run_name)
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
@@ -135,8 +135,10 @@ for epoch in range(2):
                     for i in range(seq_length - len(generated_text)):
                         input = embedding_config.chars_to_ids(generated_text).to(device) # (1, seq_len)
                         output= model(input) # (1, seq_len, vocab_size)
-                        max_index = torch.argmax(input, dim=-1) 
+                        # print("Output shape: ", output.shape) 
+                        max_index = torch.argmax(output[:, -1, :], dim=-1) 
                         next_char = embedding_config.id_to_char(max_index.item())
+                        # print("Next char: ", next_char) 
                         generated_text += next_char
                 print("Generated text: ", generated_text)
             model.train()
