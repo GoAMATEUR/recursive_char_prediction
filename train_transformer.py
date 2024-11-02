@@ -82,6 +82,7 @@ best_loss = float("inf")
 
 total_loss = AverageMeter()
 model.train()
+step_counter = 0
 for epoch in range(2):
     for i, (x, y) in enumerate(tqdm(dataloader)):
         
@@ -96,17 +97,18 @@ for epoch in range(2):
         loss.backward()
         total_loss.update(loss.item())
         optimizer.step()
+        step_counter += 1
         # scheduler.step()
         if wandb_log:
             wandb.log({"loss/train": loss.item()})
         # wandb.log()
-        if (i+1) % log_interval == 0:
+        if step_counter % log_interval == 0:
             
             # print(f"Epoch: {epoch}, Loss: {loss.item()}")
             print(f"ealuating at Epoch: {epoch}, Loss: {total_loss.avg}")
             if wandb_log:
                 wandb.log({"loss/train_avg": total_loss.avg, "perplexity/train": np.exp(total_loss.avg)})
-            torch.save(model.state_dict(), os.path.join(output_dir, f"{epoch}_{i}_model.pth"))
+            torch.save(model.state_dict(), os.path.join(output_dir, f"{epoch}_{i}_{step_counter}_model.pth"))
             total_loss.reset()
             
             if eval_loss:
@@ -144,4 +146,5 @@ for epoch in range(2):
                         generated_text += next_char
                 print("Generated text: ", generated_text)
             model.train()
+    dataset.reset_index_offset()
 torch.save(model.state_dict(), os.path.join(output_dir, f"final_model.pth"))

@@ -2,7 +2,7 @@ from torch.utils.data import Dataset, DataLoader
 import torch
 import os
 import json
-
+import random
 
 class CharParser:
     
@@ -78,6 +78,8 @@ class CharDataset(Dataset):
         self.vocab_size = embedding_config.vocab_size
         self.data = self.read_data_recursive()
         self.use_embedding_layer = use_embedding_layer
+        self.offset_range = len(self.data) % self.seq_length - 1
+        self.index_offset = 0
     
     def read_data_recursive(self) -> str:
         data = ""
@@ -92,7 +94,7 @@ class CharDataset(Dataset):
         return len(self.data) // self.seq_length
 
     def __getitem__(self, id):
-        idx = id * self.seq_length
+        idx = id * self.seq_length + self.index_offset
         if not self.use_embedding_layer:
             x = torch.zeros(self.seq_length, self.vocab_size, dtype=torch.float32)
             y = torch.zeros(self.seq_length, dtype=torch.long)
@@ -111,6 +113,8 @@ class CharDataset(Dataset):
                 y[i] = self.embedding_config.vocab_to_id[y_char]
         return x, y
 
+    def reset_index_offset(self):
+        self.index_offset = random.randint(0, self.offset_range)
     # def load_embedding(self, embedding_path: str):
     #     with open(embedding_path, "r") as file:
     #         self.vocab_to_id = json.loads(file.read())
