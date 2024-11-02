@@ -36,8 +36,22 @@ class CharParser:
             embedding[self.vocab_to_id[char]] = 1.0
             return embedding
     
-        def embedding_to_char(self, embedding: torch.Tensor) -> str:
-            ...
+        def embedding_seq_to_char(self, embedding: torch.Tensor) -> str:
+            # embedding: (batch_size, seq_length, vocab_size)
+            output = [""] * embedding.size(0)
+            max_indices = torch.argmax(embedding, dim=-1)
+            for i in range(embedding.size(0)):
+                for j in range(embedding.size(1)):
+                    output[i] += self.id_to_char(max_indices[i, j].item())
+            return output
+
+        def indices_to_chars(self, indices: torch.Tensor) -> str:
+            # indices: (batch_size, seq_length)
+            output = [""] * indices.size(0)
+            for i in range(indices.size(0)):
+                for j in range(indices.size(1)):
+                    output[i] += self.id_to_char(indices[i, j].item())
+            return output
     
         def id_to_char(self, idx: int) -> str:
             return self.id_to_vocab[idx]
