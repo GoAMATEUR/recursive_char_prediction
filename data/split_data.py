@@ -5,7 +5,7 @@ full_dir = "data/full/"
 train_dir = "data/train/"
 val_dir = "data/val/"
 
-name = "war_and_peace.txt"
+name = "shakespare.txt"
 
 with open(os.path.join(full_dir, name), "r") as f:
     text = f.read()
