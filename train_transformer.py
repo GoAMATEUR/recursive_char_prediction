@@ -58,7 +58,7 @@ scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1000, gamma=0.1
 current_run_name = time.strftime("%Y-%m-%d-%H-%M") 
 if wandb_log:
     wandb.login()
-    wandb.init(project="ESE5460_hw3_transformer", 
+    wandb.init(project="ESE5460_hw3_tf", 
             name=current_run_name, 
             config={
                     "batch_size": batch_size,
@@ -98,7 +98,7 @@ for epoch in range(2):
         if wandb_log:
             wandb.log({"loss/train": loss.item()})
         # wandb.log()
-        if (i+1) % log_interval == 0:
+        if (i) % log_interval == 0:
             
             # print(f"Epoch: {epoch}, Loss: {loss.item()}")
             print(f"ealuating at Epoch: {epoch}, Loss: {total_loss.avg}")
@@ -115,10 +115,10 @@ for epoch in range(2):
                         # hidden = torch.zeros(1, x.size(0), hidden_size).to(device)
                         x, y = x.to(device), y.to(device)
                         output = model(x)
-                        output = softmax_layer(output.view(-1, dataset.vocab_size))
-                        loss = criteria(output, y.view(-1).long())
+                        output_softmax = softmax_layer(output.view(-1, dataset.vocab_size))
+                        loss = criteria(output_softmax, y.view(-1).long())
                         total_test_loss.update(loss.item())
-                
+                        # print(output.shape)
                     if wandb_log:
                         wandb.log({"loss/validation": total_test_loss.avg, "perplexity/test": np.exp(total_test_loss.avg)})
                         
