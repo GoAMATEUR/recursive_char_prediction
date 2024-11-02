@@ -64,7 +64,7 @@ class CharParser:
         def chars_to_ids(self, chars: str) -> torch.Tensor:
             # chars: str
             # given a sentence of characters, convert to tensor of indices
-            output = torch.zeros(1, len(chars), dtype=torch.float32) # (1, seq_length)
+            output = torch.zeros(1, len(chars), dtype=torch.long) # (1, seq_length)
             for i in range(len(chars)):
                 output[0, i] = self.vocab_to_id[chars[i]]
             return output
@@ -89,9 +89,10 @@ class CharDataset(Dataset):
         return data
 
     def __len__(self):
-        return len(self.data) - self.seq_length - 1
+        return len(self.data) // self.seq_length
 
-    def __getitem__(self, idx):
+    def __getitem__(self, id):
+        idx = id * self.seq_length
         if not self.use_embedding_layer:
             x = torch.zeros(self.seq_length, self.vocab_size, dtype=torch.float32)
             y = torch.zeros(self.seq_length, dtype=torch.long)

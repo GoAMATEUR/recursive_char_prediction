@@ -17,12 +17,12 @@ wandb_log = True
 eval_loss = True
 eval_generation = True
 
-device = torch.device("cuda")
+device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.mps.is_available() else "cpu")
 
 train_dir = "./data/train"
 test_dir = "./data/val"
 full_dir = "./data/full"
-batch_size = 128
+batch_size = 32
 # seq_length = 128
 d_model = 200
 hidden_size = 256
@@ -37,8 +37,10 @@ embedding_config = CharParser(full_dir)
 
 dataset = CharDataset(train_dir, seq_length, embedding_config, use_embedding_layer=True)
 dataloader = DataLoader(dataset, batch_size, shuffle=True)
+print("len of dataset: ", len(dataset))
 testset = CharDataset(test_dir, seq_length, embedding_config, use_embedding_layer=True)
 testloader = DataLoader(testset, batch_size, shuffle=False)
+print("len of testset: ", len(testset))
 print("initialized dataset")
 model = CharTransformer(embedding_config.vocab_size, embedding_config.vocab_size, 
                         seq_len=seq_length,
@@ -98,7 +100,7 @@ for epoch in range(2):
         if wandb_log:
             wandb.log({"loss/train": loss.item()})
         # wandb.log()
-        if (i) % log_interval == 0:
+        if (i+1) % log_interval == 0:
             
             # print(f"Epoch: {epoch}, Loss: {loss.item()}")
             print(f"ealuating at Epoch: {epoch}, Loss: {total_loss.avg}")
