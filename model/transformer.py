@@ -50,15 +50,18 @@ class CharTransformer(nn.Module):
         )
         self.decoder = nn.Linear(d_model, output_size)
         self.softmax = nn.LogSoftmax(dim=-1)
+        self.init_weights()
 
     def forward(self, input):
+        
         embedded_input = self.input_emb(input)
         embedded_input = self.pos_encoder(embedded_input) # (batch, seq_len, d_model)
-        
-        causal_mask = torch.tril(torch.ones(embedded_input.size(1), embedded_input.size(1), dtype=torch.bool)).bool().to(input.device)
+        causal_mask = torch.triu(torch.ones(embedded_input.size(1), embedded_input.size(1), dtype=torch.bool), diagonal=1).to(input.device)
+        # print(causal_mask)
+        # causal_mask = torch.tril(torch.ones(embedded_input.size(1), embedded_input.size(1), dtype=torch.bool)).bool().to(input.device)
         output = self.transformer_docoder(embedded_input, embedded_input, causal_mask)
-        output = self.decoder(output)
-        return output
+        o1 = self.decoder(output)
+        return o1
 
     def init_weights(self):
         initrange = 0.1
@@ -67,8 +70,8 @@ class CharTransformer(nn.Module):
         nn.init.uniform_(self.decoder.weight, -initrange, initrange)
 
 if __name__ == "__main__":
-    transformer = CharTransformer(10, 20)
-    x = torch.zeros(8, 32).long() # (batch_size, seq_length, input_size)
+    transformer = CharTransformer(5, 5)
+    x = torch.zeros(1, 2).long() # (batch_size, seq_length, input_size)
     
     output = transformer(x)
     print(output.shape)

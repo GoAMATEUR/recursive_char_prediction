@@ -13,7 +13,7 @@ import numpy as np
 import os
 import json
 
-wandb_log = True
+wandb_log = False
 eval_loss = True
 eval_generation = True
 
@@ -22,7 +22,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.mp
 train_dir = "./data/train"
 test_dir = "./data/val"
 full_dir = "./data/full"
-batch_size = 32
+batch_size = 1
 # seq_length = 128
 d_model = 200
 hidden_size = 256
@@ -87,13 +87,15 @@ for epoch in range(2):
     for i, (x, y) in enumerate(tqdm(dataloader)):
         
         x, y = x.to(device), y.to(device) # (batch_size, seq_length), (batch_size, seq_length)
-
         optimizer.zero_grad()
         output = model(x) # (batch_size, seq_length, vocab_size)
         # print(embedding_config.indices_to_chars(y), embedding_config.embedding_seq_to_char(output))
         # print("Sample output: ", embedding_config.embedding_seq_to_char(output[:2]), embedding_config.indices_to_chars(y[:2]))
+        # print(output)
         output = softmax_layer(output.view(-1, dataset.vocab_size))
+        # print(output)÷
         loss = criteria(output, y.view(-1).long())
+        # print(loss)
         loss.backward()
         total_loss.update(loss.item())
         optimizer.step()
