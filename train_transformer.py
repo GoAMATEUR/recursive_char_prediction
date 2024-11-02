@@ -136,7 +136,7 @@ for epoch in range(2):
                         input = embedding_config.chars_to_ids(generated_text).to(device) # (1, seq_len)
                         output= model(input) # (1, seq_len, vocab_size)
                         # print("Output shape: ", output.shape) 
-                        max_index = torch.argmax(output[:, -1, :], dim=-1) 
+                        max_index = torch.argmax(output[0, -1, :], dim=-1) 
                         next_char = embedding_config.id_to_char(max_index.item())
                         # print("Next char: ", next_char) 
                         generated_text += next_char
