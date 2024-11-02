@@ -4,20 +4,6 @@ import math
 
 
 class PositionalEncoding(nn.Module):
-    r"""Inject some information about the relative or absolute position of the tokens in the sequence.
-        The positional encodings have the same dimension as the embeddings, so that the two can be summed.
-        Here, we use sine and cosine functions of different frequencies.
-    .. math:
-        \text{PosEncoder}(pos, 2i) = sin(pos/10000^(2i/d_model))
-        \text{PosEncoder}(pos, 2i+1) = cos(pos/10000^(2i/d_model))
-        \text{where pos is the word position and i is the embed idx)
-    Args:
-        d_model: the embed dim (required).
-        dropout: the dropout value (default=0.1).
-        max_len: the max. length of the incoming sequence (default=5000).
-    Examples:
-        >>> pos_encoder = PositionalEncoding(d_model)
-    """
 
     def __init__(self, d_model, dropout=0.1, max_len=128):
         super(PositionalEncoding, self).__init__()
@@ -46,28 +32,32 @@ class PositionalEncoding(nn.Module):
         return self.dropout(x)
 
 
-class transformer(nn.Module):
-    def __init__(self, input_size, output_size,  seq_len=128, d_model=512, hidden_dim=2048, dropout=0.1):
-        super(transformer, self).__init__()
+class CharTransformer(nn.Module):
+    def __init__(self, input_size, output_size,  seq_len=128, d_model=512, hidden_dim=2048, dropout=0.1, num_layers=6, n_head=8):
+        super(CharTransformer, self).__init__()
         # self.hidden_size = hidden_size
         self.d_model = d_model
         self.hidden_dim = hidden_dim
         self.pos_encoder = PositionalEncoding(self.d_model, dropout, max_len=seq_len)
         self.input_emb = nn.Embedding(input_size, self.d_model)
-        self.transformer_block = nn.Transformer(d_model=self.d_model, 
-                                                nhead=8, 
-                                                dim_feedforward=hidden_dim, 
-                                                dropout=dropout,
-                                                batch_first=True)
-        self.decoder = nn.Linear(hidden_dim, output_size)
+        self.transformer_docoder = nn.TransformerDecoder(
+            nn.TransformerDecoderLayer(d_model=d_model,
+                                       nhead=n_head,
+                                       dim_feedforward=hidden_dim,
+                                       dropout=dropout,
+                                       batch_first=True),
+            num_layers=num_layers, 
+        )
+        self.decoder = nn.Linear(d_model, output_size)
         self.softmax = nn.LogSoftmax(dim=-1)
 
     def forward(self, input):
-        embedding = self.input_emb(input)
-        embedding = self.pos_encoder(embedding)
-        print("embedding shape: ", embedding.shape)
-        tqt = torch.zeros_like(embedding)
-        output = self.transformer_block(embedding, tqt)
+        embedded_input = self.input_emb(input)
+        embedded_input = self.pos_encoder(embedded_input) # (batch, seq_len, d_model)
+        
+        causal_mask = torch.tril(torch.ones(embedded_input.size(1), embedded_input.size(1))).to(input.device)
+        output = self.transformer_docoder(embedded_input, embedded_input, causal_mask)
+        output = self.decoder(output)
         return output
 
     def init_weights(self):
@@ -77,7 +67,7 @@ class transformer(nn.Module):
         nn.init.uniform_(self.decoder.weight, -initrange, initrange)
 
 if __name__ == "__main__":
-    transformer = transformer(10, 20)
+    transformer = CharTransformer(10, 20)
     x = torch.zeros(8, 32).long() # (batch_size, seq_length, input_size)
     
     output = transformer(x)

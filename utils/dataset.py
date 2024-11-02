@@ -31,10 +31,7 @@ class CharParser:
             self.id_to_vocab = {idx: char for char, idx in self.vocab_to_id.items()}
             print("Vocab size: ", self.vocab_size)
     
-        def char_to_embedding(self, char: str) -> int:
-            embedding = torch.zeros(self.vocab_size, dtype=torch.float32)
-            embedding[self.vocab_to_id[char]] = 1.0
-            return embedding
+        
     
         def embedding_seq_to_char(self, embedding: torch.Tensor) -> str:
             # embedding: (batch_size, seq_length, vocab_size)
@@ -47,6 +44,7 @@ class CharParser:
 
         def indices_to_chars(self, indices: torch.Tensor) -> str:
             # indices: (batch_size, seq_length)
+            # given a tensor of batches of indices, convert to string
             output = [""] * indices.size(0)
             for i in range(indices.size(0)):
                 for j in range(indices.size(1)):
@@ -54,7 +52,22 @@ class CharParser:
             return output
     
         def id_to_char(self, idx: int) -> str:
+            # single id to char
             return self.id_to_vocab[idx]
+        
+        def char_to_embedding(self, char: str) -> int:
+            # single char to embedding
+            embedding = torch.zeros(self.vocab_size, dtype=torch.float32)
+            embedding[self.vocab_to_id[char]] = 1.0
+            return embedding
+
+        def chars_to_ids(self, chars: str) -> torch.Tensor:
+            # chars: str
+            # given a sentence of characters, convert to tensor of indices
+            output = torch.zeros(1, len(chars), dtype=torch.float32) # (1, seq_length)
+            for i in range(len(chars)):
+                output[0, i] = self.vocab_to_id[chars[i]]
+            return output
 
 class CharDataset(Dataset):
 
