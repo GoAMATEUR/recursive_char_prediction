@@ -11,6 +11,7 @@ import time
 import wandb
 import numpy as np
 import os
+import json
 wandb.login()
 
 
@@ -21,9 +22,9 @@ test_dir = "./data/val"
 full_dir = "./data/full"
 batch_size = 64
 seq_length = 32
-hidden_size = 256
-dropout = 0 # no dropout for 1-layer RNN
-temperature = 1.0
+hidden_size = 128
+# dropout = 0 # no dropout for 1-layer RNN
+# temperature = 1.0
 log_interval = 1000
 
 embedding_config = CharParser(full_dir)
@@ -33,10 +34,9 @@ dataloader = DataLoader(dataset, batch_size, shuffle=True)
 testset = CharDataset(test_dir, seq_length, embedding_config)
 testloader = DataLoader(testset, batch_size, shuffle=False)
 print("initialized dataset")
-rnn = RNN(dataset.vocab_size, hidden_size, dataset.vocab_size, dropout).to(device)
+rnn = RNN(dataset.vocab_size, hidden_size, dataset.vocab_size, 0).to(device)
 
-softmax_layer = nn.LogSoftmax(dim=-1)
-criteria = nn.NLLLoss()
+criteria = nn.CrossEntropyLoss()
 optimizer = Adam(rnn.parameters(), lr=0.001)
 scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1000, gamma=0.1)
 # scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5, threshold=0.01, cooldown=2, min_lr=1e-6)
@@ -48,9 +48,10 @@ wandb.init(project="ESE5460_hw3_rnn",
                 "batch_size": batch_size,
                 "seq_length": seq_length,
                 "hidden_size": hidden_size,
-                "dropout": dropout,
-                "temperature": temperature,
+                # "dropout": dropout,
+                # "temperature": temperature,
                 "log_interval": log_interval,
+                "char_to_idx": embedding_config.vocab_to_id,
            })
 
 output_dir = "output/{}".format(current_run_name)
@@ -67,8 +68,8 @@ for epoch in range(10):
         x, y = x.to(device), y.to(device) # (batch_size, seq_length, vocab_size), (batch_size, seq_length, 1)
         optimizer.zero_grad()
         output, _ = rnn(x, hidden) # (batch_size, seq_length, vocab_size)
-        output = softmax_layer(output.view(-1, dataset.vocab_size) / temperature)
-        loss = criteria(output, y.view(-1).long())
+        # output = softmax_layer(output.view(-1, dataset.vocab_size) / temperature)
+        loss = criteria(output.view(-1, dataset.vocab_size), y.view(-1).long())
         # clip gradient
         loss.backward()
         total_loss.update(loss.item())
@@ -90,8 +91,8 @@ for epoch in range(10):
                     hidden = torch.zeros(1, x.size(0), hidden_size).to(device)
                     x, y = x.to(device), y.to(device)
                     output, _ = rnn(x, hidden)
-                    output = softmax_layer(output.view(-1, dataset.vocab_size) / temperature)
-                    loss = criteria(output, y.view(-1).long())
+                    # output = softmax_layer(output.view(-1, dataset.vocab_size) / temperature)
+                    loss = criteria(output.view(-1, dataset.vocab_size), y.view(-1).long())
                     total_test_loss.update(loss.item())
                 wandb.log({"loss/test": total_test_loss.avg, "perplexity/test": np.exp(total_test_loss.avg)})
             

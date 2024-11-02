@@ -6,7 +6,7 @@ class RNN(nn.Module):
     def __init__(self, input_size, hidden_size, output_size, dropout):
         super(RNN, self).__init__()
         self.hidden_size = hidden_size
-        self.rnn_block = nn.RNN(input_size, hidden_size, batch_first=True, dropout=dropout)
+        self.rnn_block = nn.RNN(input_size, hidden_size, batch_first=True)
         self.decoder = nn.Linear(hidden_size, output_size)
         # self.softmax = nn.LogSoftmax(dim=-1)
         self.init_weights()
