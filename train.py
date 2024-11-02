@@ -13,10 +13,7 @@ import numpy as np
 import os
 import json
 
-wandb_log = False
-
-    
-
+wandb_log = True
 
 device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.mps.is_available() else "cpu")
 
@@ -109,14 +106,14 @@ for epoch in range(10):
                     total_test_loss.update(loss.item())
                 
                 if wandb_log:
-                    wandb.log({"loss/test": total_test_loss.avg, "perplexity/test": np.exp(total_test_loss.avg)})
+                    wandb.log({"loss/validation": total_test_loss.avg, "perplexity/test": np.exp(total_test_loss.avg)})
                 print("Sample output: ", embedding_config.embedding_seq_to_char(output[:2]), embedding_config.indices_to_chars(y[:2]))
                 
                 # Perform random generation from random starting point
                 hidden_gen = torch.zeros(1, 1, hidden_size).to(device)
-                x_t = "h"
-                generated_text = x_t
-                x_t = embedding_config.char_to_embedding(x_t).unsqueeze(0).unsqueeze(0).to(device) # (1, 1, vocab_size)
+                initial = "h"
+                generated_text = initial
+                x_t = embedding_config.char_to_embedding(initial).unsqueeze(0).unsqueeze(0).to(device) # (1, 1, vocab_size)
                 for i in range(seq_length - 1):
                     output, hidden_gen = rnn(x_t, hidden_gen)
                     max_index = torch.argmax(x_t, dim=-1)

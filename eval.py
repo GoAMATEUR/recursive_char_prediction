@@ -14,7 +14,7 @@ import os
 
 device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.mps.is_available() else "cpu")
 
-full_dir = "./data/full"
+full_dir = "./data_old/full"
 batch_size = 1
 seq_length = 32
 hidden_size = 256
@@ -32,17 +32,18 @@ rnn.eval()
 
 hidden = torch.zeros(1, batch_size, hidden_size).to(device)
 x_t = "h"
-x_t = CharParser.char_to_embedding(x_t)
+x_t = embedding_config.char_to_embedding(x_t)
 x_t = x_t.unsqueeze(0).unsqueeze(0).to(device) # (1, 1, vocab_size)
-output = "h"
+gen_text = "h"
 for i in range(seq_length - 1):
     # Recursively generate text until the desired length is reached
     output, hidden = rnn(x_t, hidden)
     max_index = torch.argmax(output, dim=-1)
     new_char = embedding_config.id_to_char(max_index.item())
+    # print(type(new_char))
     x_t = embedding_config.char_to_embedding(new_char).unsqueeze(0).unsqueeze(0).to(device)
     # x_t = x_t
-    output += new_char
+    gen_text += new_char
 
-print(output)
+print(gen_text)
     
