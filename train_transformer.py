@@ -25,14 +25,14 @@ full_dir = "./data/full"
 batch_size = 16
 # seq_length = 128
 d_model = 256
-hidden_size = 512
+hidden_size =1024
 dropout = 0.1
 seq_length = 128
 n_layers = 6
 n_head = 8
 # temperature = 1.0
 log_interval = 1000
-lr = 0.01
+lr = 1e-5
 
 embedding_config = CharParser(full_dir)
 
@@ -43,7 +43,7 @@ testset = CharDataset(test_dir, seq_length, embedding_config, use_embedding_laye
 testloader = DataLoader(testset, batch_size, shuffle=False)
 print("len of testset: ", len(testset))
 print("initialized dataset")
-model = CharTransformer(embedding_config.vocab_size, embedding_config.vocab_size, 
+model = CharTransformerDecoder(embedding_config.vocab_size, embedding_config.vocab_size, 
                         seq_len=seq_length,
                         d_model=d_model,
                         n_head=n_head,
@@ -55,7 +55,7 @@ model = CharTransformer(embedding_config.vocab_size, embedding_config.vocab_size
 criteria = nn.CrossEntropyLoss()
 optimizer = Adam(model.parameters(), lr=lr)
 # scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1000, gamma=0.1)
-scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=5, threshold=0.01, cooldown=2, min_lr=1e-6)
+scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=5, threshold=0.01, cooldown=2, min_lr=1e-8)
 
 
 current_run_name = time.strftime("%Y-%m-%d-%H-%M") 
@@ -84,7 +84,7 @@ best_loss = float("inf")
 total_loss = AverageMeter()
 model.train()
 step_counter = 0
-for epoch in range(50):
+for epoch in range(100):
     for i, (x, y) in enumerate(tqdm(dataloader)):
         
         x, y = x.to(device), y.to(device) # (batch_size, seq_length), (batch_size, seq_length)
@@ -101,7 +101,7 @@ for epoch in range(50):
         total_loss.update(loss.item())
         optimizer.step()
         step_counter += 1
-        scheduler.step(loss.item())
+        
         if wandb_log:
             wandb.log({"loss/train": loss.item()})
         # wandb.log()
@@ -138,7 +138,7 @@ for epoch in range(50):
                 model.eval()
                 with torch.no_grad():   
                 # Perform random generation from random starting point
-                    generated_text = "happy"
+                    generated_text = "I am a student"
                     for i in range(seq_length - len(generated_text)):
                         input = embedding_config.chars_to_ids(generated_text).to(device) # (1, seq_len)
                         output= model(input) # (1, seq_len, vocab_size)
@@ -151,5 +151,9 @@ for epoch in range(50):
                         generated_text += next_char
                 print("Generated text: ", generated_text)
             model.train()
+        scheduler.step(loss.item())
+        optimizer_lr = optimizer.param_groups[0]['lr']
+        if wandb_log:
+            wandb.log({"learning_rate": optimizer_lr})
     dataset.reset_index_offset()
 torch.save(model.state_dict(), os.path.join(output_dir, f"final_model.pth"))
