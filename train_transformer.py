@@ -51,8 +51,8 @@ model = CharTransformer(embedding_config.vocab_size, embedding_config.vocab_size
                         hidden_dim=hidden_size,
                         dropout=dropout).to(device)
 
-softmax_layer = nn.LogSoftmax(dim=-1)
-criteria = nn.NLLLoss()
+# softmax_layer = nn.LogSoftmax(dim=-1)
+criteria = nn.CrossEntropyLoss()
 optimizer = Adam(model.parameters(), lr=0.001)
 # scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1000, gamma=0.1)
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=5, threshold=0.01, cooldown=2, min_lr=1e-6)
@@ -93,7 +93,7 @@ for epoch in range(50):
         # print(embedding_config.indices_to_chars(y), embedding_config.embedding_seq_to_char(output))
         # print("Sample output: ", embedding_config.embedding_seq_to_char(output[:2]), embedding_config.indices_to_chars(y[:2]))
         # print(output)
-        output = softmax_layer(output.view(-1, dataset.vocab_size))
+        output = output.view(-1, dataset.vocab_size)
         # print(output)÷
         loss = criteria(output, y.view(-1).long())
         # print(loss)
@@ -122,7 +122,7 @@ for epoch in range(50):
                         # hidden = torch.zeros(1, x.size(0), hidden_size).to(device)
                         x, y = x.to(device), y.to(device)
                         output = model(x)
-                        output_softmax = softmax_layer(output.view(-1, dataset.vocab_size))
+                        output_softmax = output.view(-1, dataset.vocab_size)
                         loss = criteria(output_softmax, y.view(-1).long())
                         total_test_loss.update(loss.item())
                         # print(output.shape)
@@ -142,7 +142,7 @@ for epoch in range(50):
                     for i in range(seq_length - len(generated_text)):
                         input = embedding_config.chars_to_ids(generated_text).to(device) # (1, seq_len)
                         output= model(input) # (1, seq_len, vocab_size)
-                        output = softmax_layer(output[:, -1, :])
+                        output = output[:, -1, :]
                         # print("Output shape: ", output.shape) 
                         # print("Output: ", output)
                         max_index = torch.argmax(output[0, :], dim=-1) 
