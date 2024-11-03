@@ -13,7 +13,7 @@ import numpy as np
 import os
 import json
 
-wandb_log = False
+wandb_log = True
 eval_loss = True
 eval_generation = True
 
@@ -22,17 +22,17 @@ device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.mp
 train_dir = "./data/train"
 test_dir = "./data/val"
 full_dir = "./data/full"
-batch_size = 32
+batch_size = 16
 # seq_length = 128
-d_model = 200
-hidden_size = 256
+d_model = 256
+hidden_size = 1024
 dropout = 0.1
 seq_length = 128
-n_layers = 3
-n_head = 4
+n_layers = 6
+n_head = 8
 # temperature = 1.0
 log_interval = 1000
-lr = 0.01
+lr = 0.1
 
 embedding_config = CharParser(full_dir)
 
@@ -61,7 +61,7 @@ scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', fa
 current_run_name = time.strftime("%Y-%m-%d-%H-%M") 
 if wandb_log:
     wandb.login()
-    wandb.init(project="ESE5460_hw3_tf", 
+    wandb.init(project="ESE5460_hw3_tf_train", 
             name=current_run_name, 
             config={
                     "batch_size": batch_size,
