@@ -32,9 +32,9 @@ class PositionalEncoding(nn.Module):
         return self.dropout(x)
 
 
-class CharTransformer(nn.Module):
+class CharTransformerDecoder(nn.Module):
     def __init__(self, input_size, output_size,  seq_len=128, d_model=512, hidden_dim=2048, dropout=0.1, num_layers=6, n_head=8):
-        super(CharTransformer, self).__init__()
+        super(CharTransformerDecoder, self).__init__()
         # self.hidden_size = hidden_size
         self.d_model = d_model
         self.hidden_dim = hidden_dim
@@ -56,10 +56,12 @@ class CharTransformer(nn.Module):
         
         embedded_input = self.input_emb(input)
         embedded_input = self.pos_encoder(embedded_input) # (batch, seq_len, d_model)
-        causal_mask = torch.triu(torch.ones(embedded_input.size(1), embedded_input.size(1), dtype=torch.bool), diagonal=1).to(input.device)
+        # causal_mask = torch.triu(torch.ones(embedded_input.size(1), embedded_input.size(1), dtype=torch.bool), diagonal=1).to(input.device)
+        tgt_mask = nn.Transformer.generate_square_subsequent_mask(embedded_input.size(1)).to(x.device)
+        # print(tgt_mask)
         # print(causal_mask)
         # causal_mask = torch.tril(torch.ones(embedded_input.size(1), embedded_input.size(1), dtype=torch.bool)).bool().to(input.device)
-        output = self.transformer_docoder(embedded_input, embedded_input, causal_mask)
+        output = self.transformer_docoder(embedded_input, embedded_input, tgt_mask)
         o1 = self.decoder(output)
         return o1
 
@@ -70,7 +72,7 @@ class CharTransformer(nn.Module):
         nn.init.uniform_(self.decoder.weight, -initrange, initrange)
 
 if __name__ == "__main__":
-    transformer = CharTransformer(5, 5)
+    transformer = CharTransformerDecoder(5, 5)
     x = torch.zeros(1, 2).long() # (batch_size, seq_length, input_size)
     
     output = transformer(x)
