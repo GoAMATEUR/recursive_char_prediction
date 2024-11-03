@@ -13,7 +13,7 @@ import numpy as np
 import os
 import json
 
-wandb_log = True
+wandb_log = False
 eval_loss = True
 eval_generation = True
 
@@ -58,7 +58,7 @@ optimizer = Adam(model.parameters(), lr=lr)
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=5, threshold=0.01, cooldown=2, min_lr=1e-8)
 
 
-current_run_name = time.strftime("%Y-%m-%d-%H-%M") 
+current_run_name = time.strftime("decoder_%Y-%m-%d-%H-%M") 
 if wandb_log:
     wandb.login()
     wandb.init(project="ESE5460_hw3_tf_train", 
@@ -84,7 +84,7 @@ best_loss = float("inf")
 total_loss = AverageMeter()
 model.train()
 step_counter = 0
-for epoch in range(100):
+for epoch in range(500):
     for i, (x, y) in enumerate(tqdm(dataloader)):
         
         x, y = x.to(device), y.to(device) # (batch_size, seq_length), (batch_size, seq_length)
@@ -93,6 +93,7 @@ for epoch in range(100):
         # print(embedding_config.indices_to_chars(y), embedding_config.embedding_seq_to_char(output))
         # print("Sample output: ", embedding_config.embedding_seq_to_char(output[:2]), embedding_config.indices_to_chars(y[:2]))
         # print(output)
+        acc = (torch.argmax(output, dim=-1) == y).sum().item() / y.shape[0] / y.shape[1]
         output = output.view(-1, dataset.vocab_size)
         # print(output)÷
         loss = criteria(output, y.view(-1).long())
@@ -101,9 +102,10 @@ for epoch in range(100):
         total_loss.update(loss.item())
         optimizer.step()
         step_counter += 1
-        
+        # print(acc)
         if wandb_log:
             wandb.log({"loss/train": loss.item()})
+            wandb.log({"acc/train": acc})
         # wandb.log()
         if step_counter % log_interval == 0:
             
@@ -118,42 +120,47 @@ for epoch in range(100):
                 model.eval()
                 with torch.no_grad():
                     total_test_loss = AverageMeter()
-                    for x, y in (tqdm(testloader)):
+                    acc_totoal = 0
+                    for x, y in tqdm(testloader):
                         # hidden = torch.zeros(1, x.size(0), hidden_size).to(device)
                         x, y = x.to(device), y.to(device)
                         output = model(x)
                         output_softmax = output.view(-1, dataset.vocab_size)
+                        # calculate accuracy
+                        acc = (torch.argmax(output_softmax, dim=-1) == y.view(-1)).sum().item() / y.view(-1).shape[0]
+                        acc_totoal += acc
                         loss = criteria(output_softmax, y.view(-1).long())
                         total_test_loss.update(loss.item())
                         # print(output.shape)
                     if wandb_log:
-                        wandb.log({"loss/validation": total_test_loss.avg, "perplexity/test": np.exp(total_test_loss.avg)})
+                        wandb.log({"loss/validation": total_test_loss.avg, "perplexity/test": np.exp(total_test_loss.avg), "acc/validation": acc_totoal / len(testloader)})
                         
                     print("Sample output: ", embedding_config.embedding_seq_to_char(output[:2]), embedding_config.indices_to_chars(y[:2]))
                     if total_test_loss.avg < best_loss:
                         best_loss = total_test_loss.avg
                         torch.save(model.state_dict(), os.path.join(output_dir, f"best_model.pth"))
                         print("New best test Loss: ", total_test_loss.avg)
+                    scheduler.step(total_test_loss.avg)
+                    optimizer_lr = optimizer.param_groups[0]['lr']
+                    if wandb_log:
+                        wandb.log({"learning_rate": optimizer_lr})
             if eval_generation:
                 model.eval()
+                generated_text = "I am a stud"
                 with torch.no_grad():   
                 # Perform random generation from random starting point
-                    generated_text = "I am a student"
                     for i in range(seq_length - len(generated_text)):
                         input = embedding_config.chars_to_ids(generated_text).to(device) # (1, seq_len)
                         output= model(input) # (1, seq_len, vocab_size)
-                        output = output[:, -1, :]
+                        output = output[0, -1, :]
                         # print("Output shape: ", output.shape) 
                         # print("Output: ", output)
-                        max_index = torch.argmax(output[0, :], dim=-1) 
+                        max_index = torch.argmax(output, dim=-1)
                         next_char = embedding_config.id_to_char(max_index.item())
                         # print("Next char: ", next_char) 
                         generated_text += next_char
                 print("Generated text: ", generated_text)
             model.train()
-        scheduler.step(loss.item())
-        optimizer_lr = optimizer.param_groups[0]['lr']
-        if wandb_log:
-            wandb.log({"learning_rate": optimizer_lr})
+        
     dataset.reset_index_offset()
 torch.save(model.state_dict(), os.path.join(output_dir, f"final_model.pth"))

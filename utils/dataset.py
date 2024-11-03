@@ -95,6 +95,7 @@ class CharDataset(Dataset):
         return len(self.data) // self.seq_length
 
     def __getitem__(self, id):
+        # get item as blocks with random offset
         idx = id * self.seq_length + self.index_offset
         if not self.use_embedding_layer:
             x = torch.zeros(self.seq_length, self.vocab_size, dtype=torch.float32)
