@@ -25,14 +25,14 @@ full_dir = "./data/full"
 batch_size = 16
 # seq_length = 128
 d_model = 256
-hidden_size = 1024
+hidden_size = 512
 dropout = 0.1
 seq_length = 128
 n_layers = 6
 n_head = 8
 # temperature = 1.0
 log_interval = 1000
-lr = 0.1
+lr = 0.01
 
 embedding_config = CharParser(full_dir)
 
@@ -53,7 +53,7 @@ model = CharTransformer(embedding_config.vocab_size, embedding_config.vocab_size
 
 # softmax_layer = nn.LogSoftmax(dim=-1)
 criteria = nn.CrossEntropyLoss()
-optimizer = Adam(model.parameters(), lr=0.001)
+optimizer = Adam(model.parameters(), lr=lr)
 # scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1000, gamma=0.1)
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=5, threshold=0.01, cooldown=2, min_lr=1e-6)
 

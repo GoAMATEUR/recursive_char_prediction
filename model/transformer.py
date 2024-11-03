@@ -54,7 +54,7 @@ class CharTransformerDecoder(nn.Module):
 
     def forward(self, input):
         
-        embedded_input = self.input_emb(input)
+        embedded_input = self.input_emb(input) * math.sqrt(self.d_model)
         embedded_input = self.pos_encoder(embedded_input) # (batch, seq_len, d_model)
         # causal_mask = torch.triu(torch.ones(embedded_input.size(1), embedded_input.size(1), dtype=torch.bool), diagonal=1).to(input.device)
         tgt_mask = nn.Transformer.generate_square_subsequent_mask(embedded_input.size(1)).to(input.device)
