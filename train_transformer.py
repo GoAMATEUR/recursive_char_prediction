@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from model.transformer import CharTransformer
+from model.transformer import CharTransformer, CharTransformerDecoder
 from utils.dataset import CharDataset
 from utils.dataset import CharParser
 from utils.avgmeter import AverageMeter
