@@ -21,6 +21,7 @@ class RNN(nn.Module):
         input: (batch_size, seq_length, input_size)
         """
          # (a hidden layer, batch_size, hidden_size)
+        # print(input.dtype, hidden.dtype)
         output, hidden = self.rnn_block(input, hidden)
         output = self.decoder(output)
         return output, hidden

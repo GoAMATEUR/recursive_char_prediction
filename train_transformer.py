@@ -13,7 +13,7 @@ import numpy as np
 import os
 import json
 
-wandb_log = False
+wandb_log = True
 eval_loss = True
 eval_generation = True
 
@@ -22,7 +22,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.mp
 train_dir = "./data/train"
 test_dir = "./data/val"
 full_dir = "./data/full"
-batch_size = 16
+batch_size = 128
 # seq_length = 128
 d_model = 256
 hidden_size =1024
@@ -55,10 +55,10 @@ model = CharTransformerDecoder(embedding_config.vocab_size, embedding_config.voc
 criteria = nn.CrossEntropyLoss()
 optimizer = Adam(model.parameters(), lr=lr)
 # scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1000, gamma=0.1)
-scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=5, threshold=0.01, cooldown=2, min_lr=1e-8)
+scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.8, patience=10, threshold=0.01, cooldown=2, min_lr=1e-8)
 
 
-current_run_name = time.strftime("decoder_%Y-%m-%d-%H-%M") 
+current_run_name = time.strftime("decoder_128_nosche_%Y-%m-%d-%H-%M") 
 if wandb_log:
     wandb.login()
     wandb.init(project="ESE5460_hw3_tf_train", 
@@ -84,7 +84,7 @@ best_loss = float("inf")
 total_loss = AverageMeter()
 model.train()
 step_counter = 0
-for epoch in range(500):
+for epoch in range(2000):
     for i, (x, y) in enumerate(tqdm(dataloader)):
         
         x, y = x.to(device), y.to(device) # (batch_size, seq_length), (batch_size, seq_length)
@@ -140,7 +140,7 @@ for epoch in range(500):
                         best_loss = total_test_loss.avg
                         torch.save(model.state_dict(), os.path.join(output_dir, f"best_model.pth"))
                         print("New best test Loss: ", total_test_loss.avg)
-                    scheduler.step(total_test_loss.avg)
+                    # scheduler.step(total_test_loss.avg)
                     optimizer_lr = optimizer.param_groups[0]['lr']
                     if wandb_log:
                         wandb.log({"learning_rate": optimizer_lr})
@@ -152,11 +152,11 @@ for epoch in range(500):
                     for i in range(seq_length - len(generated_text)):
                         input = embedding_config.chars_to_ids(generated_text).to(device) # (1, seq_len)
                         output= model(input) # (1, seq_len, vocab_size)
-                        output = output[0, -1, :]
-                        # print("Output shape: ", output.shape) 
-                        # print("Output: ", output)
-                        max_index = torch.argmax(output, dim=-1)
-                        next_char = embedding_config.id_to_char(max_index.item())
+                        # output = output[:, -1, :]
+                        last_output = output[:, -1, :]  # Get output at the last time step, shape: [1, vocab_size]
+                        probabilities = torch.softmax(last_output.squeeze(0), dim=0)
+                        predicted_index = torch.multinomial(probabilities, num_samples=1).item()
+                        next_char = embedding_config.id_to_char(predicted_index)
                         # print("Next char: ", next_char) 
                         generated_text += next_char
                 print("Generated text: ", generated_text)
